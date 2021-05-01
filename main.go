@@ -86,6 +86,7 @@ func main() {
 
   outf := `
   {
+    "cniVersion": "1.0.0",
     "ips": [
         {
           "address": "%s"
