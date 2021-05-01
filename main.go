@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bufio"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"os"
-	"strings"
+  "bufio"
+  "encoding/json"
+  "fmt"
+  "io/ioutil"
+  "os"
+  "strings"
 )
 
 type AllocationConfig struct {
@@ -48,7 +48,6 @@ func main() {
 
   si := bufio.NewReader(os.Stdin)
   data, err := ioutil.ReadAll(si)
-
 
   var config Config
   err = json.Unmarshal(data, &config)
