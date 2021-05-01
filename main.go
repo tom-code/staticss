@@ -23,18 +23,11 @@ type Config struct {
 }
 
 func main() {
-  f, err := os.OpenFile("/tmp/d1.txt", os.O_APPEND | os.O_CREATE | os.O_WRONLY, 0666)
-  if err != nil {
-    os.Exit(1)
+  command := os.Getenv("CNI_COMMAND")
+  if command != "ADD" {
+    fmt.Println(`{"cniVersion": "1.0.0"}`)
+    return
   }
-  defer f.Close()
-  f.WriteString("log1\n")
-  f.WriteString(os.Getenv("CNI_COMMAND"))
-  f.WriteString("\n")
-  f.WriteString(os.Getenv("CNI_CONTAINERID"))
-  f.WriteString("\n")
-  f.WriteString(os.Getenv("CNI_ARGS"))
-  f.WriteString("\n")
 
   args := os.Getenv("CNI_ARGS")
   argss := strings.Split(args, ";")
@@ -55,20 +48,41 @@ func main() {
 
   si := bufio.NewReader(os.Stdin)
   data, err := ioutil.ReadAll(si)
-  f.Write(data)
-  f.WriteString("\n")
+
 
   var config Config
   err = json.Unmarshal(data, &config)
   if err != nil {
-    f.WriteString(err.Error())
+    out := `
+    {
+      "cniVersion": "1.0.0",
+      "code": 7,
+      "msg": "Invalid Configuration",
+      "details": "%s"
+    }
+    `
+    fmt.Printf(out, err.Error())
+    os.Exit(1)
   }
 
-  addr := "2.2.2.3/16"
+  addr := ""
   for _, c := range config.Ipam.Allocations {
     if (c.Namespace == namespace) && (c.Pod == podName) {
       addr = c.Address
     }
+  }
+
+  if len(addr) == 0 {
+    out := `
+    {
+      "cniVersion": "1.0.0",
+      "code": 7,
+      "msg": "Invalid Configuration",
+      "details": "no ip configured for %s/%s"
+    }
+    `
+    fmt.Printf(out, namespace, podName)
+    os.Exit(1)
   }
 
   outf := `
