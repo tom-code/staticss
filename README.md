@@ -38,4 +38,5 @@ go build github.com/tom-code/staticss
 ```
 
 ## install
-To install copy staticss binary to /opt/cni/bin of all kubernetes hosts which can run related pods.
+To install, copy staticss binary to /opt/cni/bin of all kubernetes hosts which can run related pods.
+Don't forget to make sure staticss binary is executable.
