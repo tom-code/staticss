@@ -30,3 +30,12 @@ spec:
                 }
         }'
 ``` 
+
+## compile
+To compile you need go compiler.
+```
+go build github.com/tom-code/staticss
+```
+
+## install
+To install copy staticss binary to /opt/cni/bin of all kubernetes hosts which can run related pods.
