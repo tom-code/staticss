@@ -5,6 +5,7 @@ import (
   "encoding/json"
   "fmt"
   "io/ioutil"
+  "log"
   "os"
   "strings"
 )
@@ -15,11 +16,28 @@ type AllocationConfig struct {
   Address string    `json:"address"`
   Gateway string    `json:"gateway"`
 }
+
+type RouteConfig struct {
+  Dst string `json:"dst,omitempty"`
+  Gateway string `json:"gw,omitempty"`
+}
+
 type IpamConfig struct {
   Allocations []AllocationConfig `json:"allocations"`
+  Gateway string `json:"gateway,omitempty"`
+  Routes []RouteConfig `json:"routes,omitempty"`
 }
 type Config struct {
   Ipam IpamConfig `json:"ipam"`
+}
+type CNIIpConfig struct {
+  Address string `json:"address"`
+  Gateway string ` json:"gateway,omitempty"`
+}
+type CNIIpam struct {
+  CniVersion string `json:"cniVersion"`
+  Ips []CNIIpConfig `json:"ips"`
+  Routes []RouteConfig `json:"routes,omitempty"`
 }
 
 func main() {
@@ -65,9 +83,14 @@ func main() {
   }
 
   addr := ""
+  gateway := config.Ipam.Gateway
+  routes := config.Ipam.Routes
   for _, c := range config.Ipam.Allocations {
     if (c.Namespace == namespace) && (c.Pod == podName) {
       addr = c.Address
+      if len(c.Gateway) > 0 {
+        gateway = c.Gateway
+      }
     }
   }
 
@@ -84,15 +107,21 @@ func main() {
     os.Exit(1)
   }
 
-  outf := `
-  {
-    "cniVersion": "1.0.0",
-    "ips": [
-        {
-          "address": "%s"
-        }
-    ]
+  outStruct := CNIIpam {
+    CniVersion: "1.0.0",
+    Ips: []CNIIpConfig{
+      {
+        Address: addr,
+        Gateway: gateway,
+      },
+    },
+    Routes: routes,
   }
-  `
-  fmt.Printf(outf, addr)
+
+  out, err := json.Marshal(&outStruct)
+  if err != nil {
+    log.Println(err)
+  }
+  fmt.Println(string(out))
+  log.Printf(string(out))
 }
