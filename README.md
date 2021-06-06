@@ -2,7 +2,7 @@
 k8s cni/ipam plugin with configurable static ips for statefulsets
 
 This cni plugin allows to specify static ip address for namespace / pod-name combination.
-This is useful of statefulsets which has pod name predictable. It can be used also for other custom created pods with predictable names.
+This is useful for statefulsets which has predictable pod name. It can be used also for other custom created pods with predictable names.
 
 example how it can be configured for additional network interface in NetworkAttachementDefinition specification:
 
