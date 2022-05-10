@@ -69,3 +69,29 @@ spec:
                 }
         }'
 ```
+
+
+## multiple ip address
+it is possible to assign multimple addresses to one pod:
+```
+apiVersion: "k8s.cni.cncf.io/v1"
+kind: NetworkAttachmentDefinition
+metadata:
+  name: example
+spec:
+  config: '{
+        "cniVersion": "0.3.1",
+                "name": "bridge",
+                "type": "bridge",
+                "bridge": "b1",
+                "ipMasq": false,
+                "ipam": {
+                        "type": "staticss",
+                        "routes": [{"dst": "10.0.9.0/24", "gw": "10.0.0.99"}],
+                        "allocations": [
+                                          {"namespace": "example", "pod": "ex-0", "address": "10.0.2.40/24"},
+                                          {"namespace": "example", "pod": "ex-0", "address": "fec0:aaaa:1::2/64"}
+                                       ]
+                }
+        }'
+```

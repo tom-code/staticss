@@ -35,13 +35,22 @@ type CNIIpConfig struct {
   Gateway string ` json:"gateway,omitempty"`
 }
 type CNIIpam struct {
-  CniVersion string `json:"cniVersion"`
-  Ips []CNIIpConfig `json:"ips"`
+  CniVersion string `json:"cniVersion,omitempty"`
+  Ips []CNIIpConfig `json:"ips,omitempty"`
   Routes []RouteConfig `json:"routes,omitempty"`
 }
 
 func main() {
   command := os.Getenv("CNI_COMMAND")
+
+  if command == "VERSION" {
+    fmt.Println(`{
+      "cniVersion": "1.0.0",
+      "supportedVersions": [ "0.1.0", "0.2.0", "0.3.0", "0.3.1", "0.4.0", "1.0.0" ]
+     }`)
+     return
+  }
+
   if command != "ADD" {
     fmt.Println(`{"cniVersion": "1.0.0"}`)
     return
@@ -82,19 +91,24 @@ func main() {
     os.Exit(1)
   }
 
-  addr := ""
-  gateway := config.Ipam.Gateway
+  ips := []CNIIpConfig{}
+
   routes := config.Ipam.Routes
   for _, c := range config.Ipam.Allocations {
     if (c.Namespace == namespace) && (c.Pod == podName) {
-      addr = c.Address
+      addr := c.Address
+      gateway := config.Ipam.Gateway
       if len(c.Gateway) > 0 {
         gateway = c.Gateway
       }
+      ips = append(ips, CNIIpConfig {
+        Address: addr,
+        Gateway: gateway,
+      })
     }
   }
 
-  if len(addr) == 0 {
+  if len(ips) == 0 {
     out := `
     {
       "cniVersion": "1.0.0",
@@ -109,12 +123,7 @@ func main() {
 
   outStruct := CNIIpam {
     CniVersion: "1.0.0",
-    Ips: []CNIIpConfig{
-      {
-        Address: addr,
-        Gateway: gateway,
-      },
-    },
+    Ips: ips,
     Routes: routes,
   }
 
